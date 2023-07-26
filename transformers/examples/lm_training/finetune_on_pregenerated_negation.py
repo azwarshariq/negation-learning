@@ -69,7 +69,7 @@ def fix_bn(m):
     classname = m.__class__.__name__
     if classname.find('BertLayerNorm') != -1:
         m.eval().half()
-'''
+
 class FuckWrapper(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -78,27 +78,6 @@ class FuckWrapper(nn.Module):
         return self.core(**input)
     def save_pretrained(self, output_dir):
         self.core.module.save_pretrained(output_dir)
-'''
-
-class FuckWrapper(nn.Module):
-    def __init__(self, config):
-        super(FuckWrapper, self).__init__()
-        self.core = nn.DataParallel(BertForNegPreTraining.from_pretrained('bert-base-cased', config=config))
-
-    def forward(self, input_ids, attention_mask, token_type_ids, masked_lm_labels, negated=False):
-        outputs = self.core(input_ids=input_ids,
-                            attention_mask=attention_mask,
-                            token_type_ids=token_type_ids,
-                            masked_lm_labels=masked_lm_labels,
-                            negated=negated)
-
-        # Return the output as a dictionary
-        return {"loss": outputs[0], "mlm": outputs[1], "neg": outputs[2], "kl": outputs[3]}
-
-
-    def save_pretrained(self, output_dir):
-        self.core.module.save_pretrained(output_dir)
-
 
 class PregeneratedDataset(Dataset):
     def __init__(self, training_path, epoch, tokenizer, num_data_epochs, reduce_memory=False):
@@ -387,9 +366,7 @@ def main():
                                 token_type_ids=segment_ids,
                                 masked_lm_labels=lm_label_ids,
                                 negated=False)
-
-                loss = outputs[0]  # Update this line to access the loss directly from the tuple
-
+                loss = outputs[0]
                 if n_gpu > 1:
                     loss = loss.mean() # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
@@ -398,10 +375,10 @@ def main():
                 if args.fp16:
                     with amp.scale_loss(loss, optimizer) as scaled_loss:
                         scaled_loss.backward()
+                    torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), args.max_grad_norm)
                 else:
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
-
 
                 tr_loss += loss.item()
                 nb_tr_examples += input_ids.size(0)
@@ -428,7 +405,6 @@ def main():
                                     masked_lm_labels=lm_label_ids,
                                     negated=True)
                     loss = outputs[0]
-                    
                     if n_gpu > 1:
                         loss = loss.mean() # mean() to average on multi-gpu.
                     if args.gradient_accumulation_steps > 1:
