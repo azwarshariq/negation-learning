@@ -86,14 +86,19 @@ class FuckWrapper(nn.Module):
         self.core = nn.DataParallel(BertForNegPreTraining.from_pretrained('bert-base-cased', config=config))
 
     def forward(self, input_ids, attention_mask, token_type_ids, masked_lm_labels, negated=False):
-        return self.core(input_ids=input_ids,
-                         attention_mask=attention_mask,
-                         token_type_ids=token_type_ids,
-                         masked_lm_labels=masked_lm_labels,
-                         negated=negated)
+        outputs = self.core(input_ids=input_ids,
+                            attention_mask=attention_mask,
+                            token_type_ids=token_type_ids,
+                            masked_lm_labels=masked_lm_labels,
+                            negated=negated)
+
+        # Return the output as a dictionary
+        return {"loss": outputs[0], "mlm": outputs[1], "neg": outputs[2], "kl": outputs[3]}
+
 
     def save_pretrained(self, output_dir):
         self.core.module.save_pretrained(output_dir)
+
 
 class PregeneratedDataset(Dataset):
     def __init__(self, training_path, epoch, tokenizer, num_data_epochs, reduce_memory=False):
