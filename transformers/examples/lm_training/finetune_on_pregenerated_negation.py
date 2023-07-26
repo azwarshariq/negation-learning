@@ -366,11 +366,9 @@ def main():
                                 token_type_ids=segment_ids,
                                 masked_lm_labels=lm_label_ids,
                                 negated=False)
-                #loss = outputs[0]
-                
-                print(outputs['mlm'])
-                loss = outputs['mlm']  
-                #print(f"CHECK THIS::::::{outputs}")
+
+                loss = outputs[0]  # Update this line to access the loss directly from the tuple
+
                 if n_gpu > 1:
                     loss = loss.mean() # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
