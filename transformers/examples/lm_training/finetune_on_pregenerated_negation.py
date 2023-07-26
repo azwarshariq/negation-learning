@@ -69,13 +69,29 @@ def fix_bn(m):
     classname = m.__class__.__name__
     if classname.find('BertLayerNorm') != -1:
         m.eval().half()
-
+'''
 class FuckWrapper(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.core = nn.DataParallel(BertForNegPreTraining.from_pretrained('bert-base-cased'))
     def forward(self, **input):
         return self.core(**input)
+    def save_pretrained(self, output_dir):
+        self.core.module.save_pretrained(output_dir)
+'''
+
+class FuckWrapper(nn.Module):
+    def __init__(self, config):
+        super(FuckWrapper, self).__init__()
+        self.core = nn.DataParallel(BertForNegPreTraining.from_pretrained('bert-base-cased', config=config))
+
+    def forward(self, input_ids, attention_mask, token_type_ids, masked_lm_labels, negated=False):
+        return self.core(input_ids=input_ids,
+                         attention_mask=attention_mask,
+                         token_type_ids=token_type_ids,
+                         masked_lm_labels=masked_lm_labels,
+                         negated=negated)
+
     def save_pretrained(self, output_dir):
         self.core.module.save_pretrained(output_dir)
 
