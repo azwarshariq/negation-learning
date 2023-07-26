@@ -366,8 +366,7 @@ def main():
                                 token_type_ids=segment_ids,
                                 masked_lm_labels=lm_label_ids,
                                 negated=False)
-                #loss = outputs[0]
-                loss = outputs.loss
+                loss = outputs[0]
 
                 if n_gpu > 1:
                     loss = loss.mean() # mean() to average on multi-gpu.
