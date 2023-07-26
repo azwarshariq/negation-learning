@@ -366,7 +366,9 @@ def main():
                                 token_type_ids=segment_ids,
                                 masked_lm_labels=lm_label_ids,
                                 negated=False)
-                loss = outputs[0]
+                #loss = outputs[0]
+                loss = outputs.loss
+
                 if n_gpu > 1:
                     loss = loss.mean() # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
@@ -375,10 +377,10 @@ def main():
                 if args.fp16:
                     with amp.scale_loss(loss, optimizer) as scaled_loss:
                         scaled_loss.backward()
-                    torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), args.max_grad_norm)
                 else:
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+
 
                 tr_loss += loss.item()
                 nb_tr_examples += input_ids.size(0)
