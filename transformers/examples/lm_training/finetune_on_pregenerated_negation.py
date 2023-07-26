@@ -367,7 +367,7 @@ def main():
                                 masked_lm_labels=lm_label_ids,
                                 negated=False)
                 loss = outputs[0]
-
+                print(f"CHECK THIS::::::{outputs}")
                 if n_gpu > 1:
                     loss = loss.mean() # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
