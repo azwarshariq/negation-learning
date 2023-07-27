@@ -368,7 +368,10 @@ def main():
                                 negated=False)
                 
                 #print(f"\n\nOutput 0{outputs[0]}\n\n")
-                print(f"\n\nOutput 0{outputs[1]}\n\n")
+                #for i in range(len(outputs)):
+                #    print(f"\n\nOutput {i}: {outputs[i]}\n\n")
+                #outputs[0](tensor) == outputs[1]
+                #print(f"\n\nOutput 0{outputs[1]}\n\n")
                 #print(f"\n\nOutput 0{outputs[2]}\n\n")
 
                 loss = outputs[1]
